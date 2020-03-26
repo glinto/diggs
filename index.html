@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+	<title>Diggs</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link href="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.css" rel="stylesheet">
+	<script src="https://unpkg.com/material-components-web@v4.0.0/dist/material-components-web.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+
+	<style>
+		body { margin: 0; padding: 0;}
+
+		:root {
+			--mdc-theme-primary: #048C93;
+			--mdc-theme-secondary: #F37306;
+			--mdc-theme-on-primary: #fff;
+			--mdc-theme-on-secondary: #fff;
+			--mdc-theme-background: #eee;
+   		--mdc-theme-surface: #fff;
+   		--mdc-theme-on-surface: #202020;
+   		--mdc-theme-error: #E20531;
+		}
+
+		.color-light-container { background-color: #F8A55F; color: #fff; }
+		.mdc-chip--mine { background-color: #2BB8BF80; }
+
+	</style>
+</head>
+<body class="mdc-typography">
+	<header class="mdc-top-app-bar mdc-top-app-bar--fixed">
+		<div class="mdc-top-app-bar__row">
+			<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+				<button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button">menu</button>
+				<span class="mdc-top-app-bar__title">Diggs</span>
+			</section>
+		</div>
+	</header>
+	<div class="mdc-layout-grid mdc-top-app-bar--fixed-adjust color-light-container">
+		<div class="mdc-layout-grid__inner">
+			<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-12">
+				<p class="mdc-typography mdc-typography--body1" id="stateText">Waiting for players...</p>
+			</div>
+		</div>
+	</div>
+<div class="mdc-chip-set" role="grid" id="playerChips">
+  <!--div class="mdc-chip" role="row">
+    <div class="mdc-chip__ripple"></div>
+    <span role="gridcell">
+      <span role="button" class="mdc-chip__primary-action">
+        <span class="mdc-chip__text">Chip One</span>
+      </span>
+    </span>
+  </div>
+  <div class="mdc-chip" role="row">
+    <div class="mdc-chip__ripple"></div>
+    <span role="gridcell">
+      <span role="button" class="mdc-chip__primary-action">
+        <span class="mdc-chip__text">Chip Two</span>
+      </span>
+    </span>
+  </div-->
+</div>
+	<div class="mdc-layout-grid">
+		<div class="mdc-layout-grid__inner">
+			<div class="mdc-layout-grid__cell">
+			
+			</div>
+			<div class="mdc-layout-grid__cell">
+				
+			</div>
+			<div class="mdc-layout-grid__cell">
+				
+			</div>
+			<div class="mdc-layout-grid__cell">
+				
+			</div>
+		</div>
+	</div>
+	<script>
+		var id;
+		var socket = io('http://localhost:3000');
+		socket.on('connect', function(){console.log("connected")});
+		socket.on('players', function(data){displayPlayers(data)});
+		socket.on('you', function(data){you(data)});
+		socket.on('disconnect', function(){console.log("disconnected")});
+
+
+		function you(data) {
+			console.log(data);
+			id = data.id;
+		}
+
+		function displayPlayers(data) {
+			console.log(data); 
+			$("#playerChips").empty();
+			for (var i = 0; i < data.length; i++) {
+				addPlayerChip(data[i]);
+			}
+		}
+
+		function addPlayerChip(data) {
+			var $chip = $('<div class="mdc-chip" role="row"><div class="mdc-chip__ripple"></div><span role="gridcell"><span role="button" class="mdc-chip__primary-action"><span class="mdc-chip__text">'+data.id+'</span></span></span></div>');
+			if (data.id == id) $chip.addClass('mdc-chip--mine');
+			$("#playerChips").append($chip);
+		}
+
+	</script>
+</body>
+</html>
