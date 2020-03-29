@@ -1,15 +1,14 @@
 class Deck {
 
-
 	constructor() {
-		
-		this.reset();
+		this.cards = [];
+		this.dispense = [];
 	}
 
 	reset() {
-		const deckSize = 84;
+		const DECK_SIZE = 84;
 		this.cards = [];
-		for (var i = 0; i < deckSize; i++) {
+		for (var i = 0; i < DECK_SIZE; i++) {
 			this.cards.push(i+1);
 		}
 		this.dispense = [];

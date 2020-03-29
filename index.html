@@ -1,5 +1,6 @@
 <!doctype html>
 <html>
+
 <head>
 	<title>Diggs</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -11,7 +12,10 @@
 
 
 	<style>
-		body { margin: 0; padding: 0;}
+		body {
+			margin: 0;
+			padding: 0;
+		}
 
 		:root {
 			--mdc-theme-primary: #048C93;
@@ -19,13 +23,36 @@
 			--mdc-theme-on-primary: #fff;
 			--mdc-theme-on-secondary: #fff;
 			--mdc-theme-background: #eee;
-		--mdc-theme-surface: #fff;
-		--mdc-theme-on-surface: #202020;
-		--mdc-theme-error: #E20531;
+			--mdc-theme-surface: #fff;
+			--mdc-theme-on-surface: #202020;
+			--mdc-theme-error: #E20531;
 		}
 
-		.color-light-container { background-color: #F8A55F; color: #fff; }
-		.mdc-chip--mine { background-color: #F8A55F; color: #fff; }
+		.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+			color: #048C93;
+		}
+
+		.color-light-container {
+			background-color: #F8A55F;
+			color: #fff;
+		}
+
+		.mdc-chip--mine {
+			background-color: #F8A55F;
+			color: #fff;
+		}
+
+		.mdc-chip--mine i {
+			color: #fff;
+		}
+
+		.mdc-chip i {
+			display: none;
+		}
+
+		.mdc-chip--active i {
+			display: block;
+		}
 
 		.page-container {
 			position: relative;
@@ -43,7 +70,23 @@
 		}
 
 		.section-title {
-			border-bottom: 1px solid rgba(0,0,0,.87);
+			border-bottom: 1px solid rgba(0, 0, 0, .87);
+		}
+
+		.mdc-card__media--cardsize::before {
+			margin-top: 150%;
+		}
+
+		.mdc-card__media--cardsize {
+			
+			background-color: #eeeeee;
+		}
+
+		.mdc-card__media--playcard {
+			background-image: url('/assets/cards.private.jpg');
+			background-size: 1400%;
+			background-position-x: left;
+			background-position-y: top;
 		}
 
 		@media(min-width: 1024px) {
@@ -53,116 +96,129 @@
 			}
 		}
 
+		.game-state { display: none; }
+
+		.flex-align-center {
+			display: flex;
+			align-items: center;
+		}
 	</style>
 </head>
+
 <body class="mdc-typography">
-	<div id="root"><div class="page-container">
-		<header class="mdc-top-app-bar mdc-top-app-bar--fixed">
-			<div class="mdc-top-app-bar__row">
-				<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
-					<button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button">menu</button>
-					<span class="mdc-top-app-bar__title">Diggs</span>
-				</section>
-				<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
-					<button class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded" aria-label="Play next round">play_arrow</button>
-					<button id="editButton" class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded" aria-label="Edit name">edit</button>
-				</section>
+	<div id="root">
+		<div class="page-container">
+			<header class="mdc-top-app-bar mdc-top-app-bar--fixed">
+				<div class="mdc-top-app-bar__row">
+					<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+						<button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button">menu</button>
+						<span class="mdc-top-app-bar__title">Diggs</span>
+					</section>
+					<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
+						<button id="playButton"
+							class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded game-state game-state-ns"
+							aria-label="Play next round">play_arrow</button>
+						<button id="editButton"
+							class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded"
+							aria-label="Edit name">person</button>
+					</section>
+				</div>
+			</header>
+
+			<div class="page-content mdc-top-app-bar--fixed-adjust">
+
+				<h2 class="section-title mdc-typography--headline6">Connected players</h2>
+
+				<div class="mdc-chip-set " role="grid" id="playerChips">
+				</div>
+
+				<h2 class="section-title mdc-typography--headline6">Story</h2>
+				<p class="mdc-typography--body game-state game-state-ns">The game has not yet started.</p>
+
 			</div>
-		</header>
 
-		<div class="page-content mdc-top-app-bar--fixed-adjust">
-			
-			<h2 class="section-title mdc-typography--headline6">Connected players</h2>
+			<div class="mdc-layout-grid game-state game-state-st">
+				<div class="mdc-layout-grid__inner">
+					<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop">
+						<div class="mdc-card">
+							<div class="mdc-card__primary-action">
+								<div class="mdc-card__media mdc-card__media--cardsize">
 
-			<div class="mdc-chip-set " role="grid" id="playerChips">
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop flex-align-center">
+						<div>
+							<span class="mdc-typography--subtitle1">Story phase</span>
+							<p class="mdc-typography--headline4">Wait for the story and play one of your cards</p>
+						</div>
+						
+					</div>
+				</div>
 			</div>
 
-			<h2 class="section-title mdc-typography--headline6">Story</h2>
-			<p class="mdc-typography--body">The game has not yet started.</p>
+			<div class="page-content">
+				<h2 class="section-title mdc-typography--headline6">Your hand</h2>
+			</div>
 
-			<h2 class="section-title mdc-typography--headline6">Your hand</h2>
+			<div class="mdc-layout-grid">
+				<div class="mdc-layout-grid__inner" id="handgrid">
 
+				</div>
+			</div>
+
+
+			<div class="mdc-dialog" id="#nameDialog">
+				<div class="mdc-dialog__container">
+					<div class="mdc-dialog__surface" role="alertdialog" aria-modal="true"
+						aria-labelledby="my-dialog-title" aria-describedby="my-dialog-content">
+						<!-- Title cannot contain leading whitespace due to mdc-typography-baseline-top() -->
+						<h2 class="mdc-dialog__title" id="my-dialog-title"><!--
+		 					-->What's your name?<!--
+	  					--></h2>
+						<div class="mdc-dialog__content" id="my-dialog-content">
+							<label class="mdc-text-field">
+								<div class="mdc-text-field__ripple"></div>
+								<input class="mdc-text-field__input" type="text" id="nameInput"
+									aria-labelledby="my-label-id">
+								<span class="mdc-floating-label" id="my-label-id">Name</span>
+								<div class="mdc-line-ripple"></div>
+							</label>
+						</div>
+						<footer class="mdc-dialog__actions">
+							<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="close">
+								<div class="mdc-button__ripple"></div>
+								<span class="mdc-button__label">Cancel</span>
+							</button>
+							<button type="button"
+								class="mdc-button mdc-dialog__button mdc-dialog__footer__button--accept"
+								data-mdc-dialog-action="accept" data-mdc-dialog-button-default>
+								<div class="mdc-button__ripple"></div>
+								<span class="mdc-button__label">Ok</span>
+							</button>
+						</footer>
+					</div>
+				</div>
+				<div class="mdc-dialog__scrim"></div>
+			</div>
 		</div>
-		
-		<!--div class="mdc-layout-grid mdc-top-app-bar--fixed-adjust">
-			<div class="mdc-layout-grid__inner">
-				<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-12">
-					<label class="mdc-typography mdc-typography--subtitle1" id="stateText">Connected players</label>
-				</div>
-			</div>
-		</div-->
-		
-
-		<div class="mdc-layout-grid">
-			<div class="mdc-layout-grid__inner">
-				<div class="mdc-layout-grid__cell">
-				
-				</div>
-				<div class="mdc-layout-grid__cell">
-					
-				</div>
-				<div class="mdc-layout-grid__cell">
-					
-				</div>
-				<div class="mdc-layout-grid__cell">
-					
-				</div>
-			</div>
-		</div>
-
-
-	<div class="mdc-dialog" id="#nameDialog">
-	  <div class="mdc-dialog__container">
-		<div class="mdc-dialog__surface"
-		  role="alertdialog"
-		  aria-modal="true"
-		  aria-labelledby="my-dialog-title"
-		  aria-describedby="my-dialog-content">
-		  <!-- Title cannot contain leading whitespace due to mdc-typography-baseline-top() -->
-		  <h2 class="mdc-dialog__title" id="my-dialog-title"><!--
-		 -->What's your name?<!--
-	   --></h2>
-		  <div class="mdc-dialog__content" id="my-dialog-content">
-
-	<label class="mdc-text-field">
-	  <div class="mdc-text-field__ripple"></div>
-	  <input class="mdc-text-field__input" type="text" id="nameInput" aria-labelledby="my-label-id">
-	  <span class="mdc-floating-label" id="my-label-id">Name</span>
-	  <div class="mdc-line-ripple"></div>
-	</label>
-
-		  </div>
-		  <footer class="mdc-dialog__actions">
-			<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="close">
-			  <div class="mdc-button__ripple"></div>
-			  <span class="mdc-button__label">Cancel</span>
-			</button>
-			<button type="button" class="mdc-button mdc-dialog__button mdc-dialog__footer__button--accept" data-mdc-dialog-action="accept" data-mdc-dialog-button-default>
-			  <div class="mdc-button__ripple"></div>
-			  <span class="mdc-button__label">Ok</span>
-			</button>
-		  </footer>
-		</div>
-	  </div>
-	  <div class="mdc-dialog__scrim"></div>
 	</div>
-	</div></div>
 
 	<script>
-		
 
 		var id;
 		var socket;
 		var nameDialog;
-
+	
 		function you(data) {
 			//console.log(data);
 			id = data.id;
-			$("#chip"+id).addClass('mdc-chip--mine');
+			$("#chip" + id).addClass('mdc-chip--mine');
 		}
 
 		function displayPlayers(data) {
-			//console.log(data); 
+			console.log(data); 
 			$("#playerChips").empty();
 			for (var i = 0; i < data.length; i++) {
 				addPlayerChip(data[i]);
@@ -170,8 +226,9 @@
 		}
 
 		function addPlayerChip(data) {
-			var $chip = $('<div class="mdc-chip" role="row" id="chip'+data.id+'"><div class="mdc-chip__ripple"></div><span role="gridcell"><span role="button" class="mdc-chip__primary-action"><span class="mdc-chip__text">'+data.name+'</span></span></span></div>');
+			var $chip = $('<div class="mdc-chip" role="row" id="chip' + data.id + '"><div class="mdc-chip__ripple"></div><i class="material-icons mdc-chip__icon mdc-chip__icon--leading">face</i><span role="gridcell"><span role="button" class="mdc-chip__primary-action"><span class="mdc-chip__text">' + data.name + '</span></span></span></div>');
 			if (data.id == id) $chip.addClass('mdc-chip--mine');
+			if (data.active) $chip.addClass('mdc-chip--active');
 			$("#playerChips").append($chip);
 		}
 
@@ -190,31 +247,63 @@
 			socket.emit('me', str);
 		}
 
+		function hand(data) {
+			$("#handgrid").empty();
+			console.log(data);
 
-		$(document ).ready(function() {
+			var i;
+			for (i = 0; i < data.length; i++) {
+				var idx = data[i] - 1;
+				var xoff = (idx % 14) * 7.69;
+				var yoff = Math.floor(idx / 14) * 20;
+				var $card = $('<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop"><div class="mdc-card"><div class="mdc-card__primary-action"><div class="mdc-card__media mdc-card__media--cardsize mdc-card__media--playcard"></div></div></div></div>');
+
+				$card.find('.mdc-card__media--cardsize').css('background-position-x', xoff + "%");
+				$card.find('.mdc-card__media--cardsize').css('background-position-y', yoff + "%");
+				$card.attr('data-card-id', data[i]);
+				$("#handgrid").append($card);
+			}
+
+		}
+
+		function state(data) {
+			$('.game-state').css('display', 'none');
+			$('.game-state-'+data.toLowerCase()).css('display', 'block');
+		}
+
+
+		$(document).ready(function () {
 			const MDCDialog = mdc.dialog.MDCDialog;
 			const MDCDialogFoundation = mdc.dialog.MDCDialogFoundation;
 
 			nameDialog = new MDCDialog(document.getElementById('#nameDialog'));
-			nameDialog.listen('MDCDialog:closed', function(data) {
+			nameDialog.listen('MDCDialog:closed', function (data) {
 				if (data.detail.action == 'accept') setName($('#nameInput').val());
 			});
 
 			mdc.textField.MDCTextField.attachTo(document.querySelector('.mdc-text-field'));
+			mdc.topAppBar.MDCTopAppBar.attachTo(document.querySelector('.mdc-top-app-bar'));
 
 			socket = io('/');
-			socket.on('connect', function(data){connected()});
-			socket.on('players', function(data){displayPlayers(data)});
-			socket.on('you', function(data){you(data)});
-			socket.on('disconnect', function(){});
+			socket.on('connect', function (data) { connected() });
+			socket.on('players', function (data) { displayPlayers(data) });
+			socket.on('you', function (data) { you(data) });
+			socket.on('hand', function (data) { hand(data) });
+			socket.on('state', function (data) { state(data) });
+			socket.on('disconnect', function () { });
 
-			$("#editButton").click(function() {
+			$("#editButton").click(function () {
 				nameDialog.open();
 			});
 
-			
+			$("#playButton").click(function () {
+				socket.emit('next', 0);
+			});
+
+
 		});
 
 	</script>
 </body>
+
 </html>

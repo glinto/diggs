@@ -1,7 +1,7 @@
 const express = require('express');
 var app = express();
 var http = require('http').createServer(app);
-var io = require('socket.io')(http, {cookie: true, pingInterval: 5000, pingTimeout: 5000});
+var io = require('socket.io')(http, {cookie: true, pingInterval: 240000, pingTimeout: 60000});
 
 const Players = require('./player');
 var players = new Players(io);
@@ -9,8 +9,8 @@ var players = new Players(io);
 const Deck = require('./deck');
 var deck = new Deck();
 
-
-
+const Game = require('./game');
+var game = new Game(players, deck);
 
 app.use(express.static('public'));
 app.get('/', function(req, res){
@@ -18,7 +18,7 @@ app.get('/', function(req, res){
 });
 
 http.listen(3000, function(){
-	console.log('listening on *:3000');
+	console.log('Server listening on *:3000');
 });
 
 io.on('connection', function(socket) {
@@ -27,8 +27,7 @@ io.on('connection', function(socket) {
  	players.connect(socket);
  	
  	socket.on('disconnect', (reason) => {
-    	console.log(socket.id+' disconnected: '+reason);
-    	players.disconnect(socket);
+    	players.disconnect(socket, reason);
   	});
  	
  	io.clients((error, clients) => {
