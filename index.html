@@ -50,7 +50,11 @@
 			display: none;
 		}
 
-		.mdc-chip--active i {
+		.mdc-chip--active i.chip-first-icon {
+			display: block;
+		}
+
+		.mdc-chip--done i.chip-second-icon {
 			display: block;
 		}
 
@@ -101,6 +105,7 @@
 		.flex-align-center {
 			display: flex;
 			align-items: center;
+			justify-content: center;
 		}
 	</style>
 </head>
@@ -137,32 +142,51 @@
 
 			</div>
 
-			<div class="mdc-layout-grid game-state game-state-st">
+			<div class="mdc-layout-grid game-state game-state-st game-state-pc">
 				<div class="mdc-layout-grid__inner">
 					<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop">
 						<div class="mdc-card">
 							<div class="mdc-card__primary-action">
-								<div class="mdc-card__media mdc-card__media--cardsize">
+								<div id="tableCard" class="mdc-card__media mdc-card__media--cardsize">
 
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop flex-align-center">
+					<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-6-tablet mdc-layout-grid__cell--span-10-desktop flex-align-center">
 						<div>
-							<span class="mdc-typography--subtitle1">Story phase</span>
-							<p class="mdc-typography--headline4">Wait for the story and play one of your cards</p>
+							<div class="game-state game-state-story-passive">
+								<p class="mdc-typography--headline4">Wait for the storyteller then play a card</p>
+							</div>
+							<div class="game-state game-state-story-active">
+								<button class="mdc-fab" aria-label="Favorite" id="storyButton">
+									<div class="mdc-fab__ripple"></div>
+									<span class="mdc-fab__icon material-icons">edit</span>
+								</button>
+							</div>
+
+							<div class="game-state game-state-pc">
+								<div class="mdc-typography--body">Play a card for</div>
+								<div class="mdc-typography--headline4" id="storyText">...</div>
+							</div>
+
 						</div>
 						
 					</div>
 				</div>
 			</div>
 
-			<div class="page-content">
+			<div class="mdc-layout-grid game-state game-state-vc">
+				<div class="mdc-layout-grid__inner" id="tablegrid">
+
+				</div>
+			</div>
+
+			<div class="page-content game-state game-state-pc game-state-st">
 				<h2 class="section-title mdc-typography--headline6">Your hand</h2>
 			</div>
 
-			<div class="mdc-layout-grid">
+			<div class="mdc-layout-grid game-state game-state-pc game-state-st">
 				<div class="mdc-layout-grid__inner" id="handgrid">
 
 				</div>
@@ -202,6 +226,40 @@
 				</div>
 				<div class="mdc-dialog__scrim"></div>
 			</div>
+
+			<div class="mdc-dialog" id="#storyDialog">
+				<div class="mdc-dialog__container">
+					<div class="mdc-dialog__surface" role="alertdialog" aria-modal="true"
+						aria-labelledby="story-dialog-title" aria-describedby="story-dialog-content">
+						<!-- Title cannot contain leading whitespace due to mdc-typography-baseline-top() -->
+						<h2 class="mdc-dialog__title" id="story-dialog-title"><!--
+		 					-->Please tell your story<!--
+	  					--></h2>
+						<div class="mdc-dialog__content" id="story-dialog-content">
+							<label class="mdc-text-field" id="storyField">
+								<div class="mdc-text-field__ripple"></div>
+								<input class="mdc-text-field__input" type="text" id="storyInput"
+									aria-labelledby="story-label-id">
+								<span class="mdc-floating-label" id="story-label-id">Your story</span>
+								<div class="mdc-line-ripple"></div>
+							</label>
+						</div>
+						<footer class="mdc-dialog__actions">
+							<button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="close">
+								<div class="mdc-button__ripple"></div>
+								<span class="mdc-button__label">Cancel</span>
+							</button>
+							<button type="button"
+								class="mdc-button mdc-dialog__button mdc-dialog__footer__button--accept"
+								data-mdc-dialog-action="accept" data-mdc-dialog-button-default>
+								<div class="mdc-button__ripple"></div>
+								<span class="mdc-button__label">Ok</span>
+							</button>
+						</footer>
+					</div>
+				</div>
+				<div class="mdc-dialog__scrim"></div>
+			</div>
 		</div>
 	</div>
 
@@ -210,11 +268,35 @@
 		var id;
 		var socket;
 		var nameDialog;
+		var storyDialog;
+		var me;
+		var gamestate;
 	
 		function you(data) {
 			//console.log(data);
 			id = data.id;
 			$("#chip" + id).addClass('mdc-chip--mine');
+		}
+
+		function setMe(data) {
+			window.me = data;
+			storyMode();
+		}
+
+		function storyMode() {
+			if (window.gamestate == 'ST') {
+				var active = (window.me && window.me.storySetter);
+				$('.game-state-story-active').css('display', active ? 'block' : 'none');
+				$('.game-state-story-passive').css('display', active ? 'none' : 'block');
+			}
+		}
+
+		function setStory(str) {
+			socket.emit('story', str);
+		}
+
+		function story(str) {
+			$("#storyText").html(str);
 		}
 
 		function displayPlayers(data) {
@@ -226,9 +308,13 @@
 		}
 
 		function addPlayerChip(data) {
-			var $chip = $('<div class="mdc-chip" role="row" id="chip' + data.id + '"><div class="mdc-chip__ripple"></div><i class="material-icons mdc-chip__icon mdc-chip__icon--leading">face</i><span role="gridcell"><span role="button" class="mdc-chip__primary-action"><span class="mdc-chip__text">' + data.name + '</span></span></span></div>');
-			if (data.id == id) $chip.addClass('mdc-chip--mine');
-			if (data.active) $chip.addClass('mdc-chip--active');
+			var $chip = $('<div class="mdc-chip" role="row" id="chip' + data.id + '"><div class="mdc-chip__ripple"></div><i class="material-icons mdc-chip__icon mdc-chip__icon--leading chip-first-icon">face</i><i class="material-icons mdc-chip__icon mdc-chip__icon--leading chip-second-icon">done</i><span role="gridcell"><span role="button" class="mdc-chip__primary-action"><span class="mdc-chip__text">' + data.name + '</span></span></span></div>');
+			if (data.id == id) { 
+				$chip.addClass('mdc-chip--mine');
+				setMe(data);
+			}
+			if (data.storySetter) $chip.addClass('mdc-chip--active');
+			if (data.acted) $chip.addClass('mdc-chip--done');
 			$("#playerChips").append($chip);
 		}
 
@@ -238,41 +324,96 @@
 			}
 			else {
 				setName(sessionStorage.getItem("playerName"));
+				$('#nameInput').val(sessionStorage.getItem("playerName"));
 			}
 		}
 
 
 		function setName(str) {
 			sessionStorage.setItem('playerName', str);
-			socket.emit('me', str);
+			socket.emit('me', {name: str, clientId: sessionStorage.getItem("clientId")});
 		}
 
 		function hand(data) {
 			$("#handgrid").empty();
 			console.log(data);
 
-			var i;
-			for (i = 0; i < data.length; i++) {
-				var idx = data[i] - 1;
-				var xoff = (idx % 14) * 7.69;
-				var yoff = Math.floor(idx / 14) * 20;
-				var $card = $('<div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop"><div class="mdc-card"><div class="mdc-card__primary-action"><div class="mdc-card__media mdc-card__media--cardsize mdc-card__media--playcard"></div></div></div></div>');
+			if (data.table) {
+				$('#tableCard').addClass('mdc-card__media--playcard');
+				var offs = offsets(data.table);
+				$('#tableCard').css('background-position-x', offs.x);
+				$('#tableCard').css('background-position-y', offs.y);
+			}
+			else {
+				$('#tableCard').removeClass('mdc-card__media--playcard');
+			}
 
-				$card.find('.mdc-card__media--cardsize').css('background-position-x', xoff + "%");
-				$card.find('.mdc-card__media--cardsize').css('background-position-y', yoff + "%");
-				$card.attr('data-card-id', data[i]);
+			var i;
+			for (i = 0; i < data.hand.length; i++) {
+				var offs = offsets(data.hand[i]);
+				var $card = $('<div class="play-card mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop"><div class="mdc-card"><div class="mdc-card__primary-action"><div class="mdc-card__media mdc-card__media--cardsize mdc-card__media--playcard"></div></div></div></div>');
+
+				$card.find('.mdc-card__media--cardsize').css('background-position-x', offs.x);
+				$card.find('.mdc-card__media--cardsize').css('background-position-y', offs.y);
+				$card.attr('data-card-id', data.hand[i]);
+				$card.click(function(e){ playCard($(e.currentTarget).attr('data-card-id'))});
 				$("#handgrid").append($card);
 			}
 
 		}
 
+		function playCard(data) {
+			socket.emit('play', data);
+		}
+
+		function table(data) {
+			console.log(data);
+			$("#tablegrid").empty();
+			for (var i = 0; i < data.length; i++) {
+				var offs = offsets(data[i]);
+				var $card = $('<div class="play-card mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop"><div class="mdc-card"><div class="mdc-card__primary-action"><div class="mdc-card__media mdc-card__media--cardsize mdc-card__media--playcard"></div></div></div></div>');
+				$card.find('.mdc-card__media--cardsize').css('background-position-x', offs.x);
+				$card.find('.mdc-card__media--cardsize').css('background-position-y', offs.y);
+				$card.attr('data-card-id', data[i]);
+				$card.click(function(e){ voteCard($(e.currentTarget).attr('data-card-id'))});
+				$("#tablegrid").append($card);
+
+			}
+		}
+
+		function voteCard(data) {
+			socket.emit('vote', data);
+			$('#tablegrid .mdc-card__media--cardsize').css('filter', 'grayscale(100%)');
+			$('#tablegrid .play-card[data-card-id="'+data+'"] .mdc-card__media--cardsize').css('filter', 'none');
+		}
+
+
+
+		function offsets(serial) {
+			var idx = serial - 1;
+			var xoff = (idx % 14) * 7.69;
+			var yoff = Math.floor(idx / 14) * 20;
+			return {x: xoff + "%", y: yoff + "%"}
+		}
+
 		function state(data) {
+			window.gamestate = data;
 			$('.game-state').css('display', 'none');
 			$('.game-state-'+data.toLowerCase()).css('display', 'block');
+			storyMode();
+			if (data == 'ST') $('#tableCard').removeClass('mdc-card__media--playcard');
+		}
+
+		function generateClientId() {
+			if (!sessionStorage.getItem('clientId')) {
+				var str = "X" + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+				sessionStorage.setItem('clientId', str);
+			}
 		}
 
 
 		$(document).ready(function () {
+			generateClientId();
 			const MDCDialog = mdc.dialog.MDCDialog;
 			const MDCDialogFoundation = mdc.dialog.MDCDialogFoundation;
 
@@ -281,22 +422,34 @@
 				if (data.detail.action == 'accept') setName($('#nameInput').val());
 			});
 
+			storyDialog = new MDCDialog(document.getElementById('#storyDialog'));
+			storyDialog.listen('MDCDialog:closed', function (data) {
+				if (data.detail.action == 'accept') setStory($('#storyInput').val());
+			});
+
 			mdc.textField.MDCTextField.attachTo(document.querySelector('.mdc-text-field'));
+			mdc.textField.MDCTextField.attachTo(document.querySelector('#storyField'));
 			mdc.topAppBar.MDCTopAppBar.attachTo(document.querySelector('.mdc-top-app-bar'));
 
 			socket = io('/');
 			socket.on('connect', function (data) { connected() });
 			socket.on('players', function (data) { displayPlayers(data) });
 			socket.on('you', function (data) { you(data) });
-			socket.on('hand', function (data) { hand(data) });
+			socket.on('hand', function (data) { hand(data); });
 			socket.on('state', function (data) { state(data) });
+			socket.on('story', function (data) { story(data) });
+			socket.on('table', function (data) { table(data) });
 			socket.on('disconnect', function () { });
 
-			$("#editButton").click(function () {
+			$('#editButton').click(function () {
 				nameDialog.open();
 			});
 
-			$("#playButton").click(function () {
+			$('#storyButton').click(function () {
+				storyDialog.open();
+			});
+
+			$('#playButton').click(function () {
 				socket.emit('next', 0);
 			});
 
