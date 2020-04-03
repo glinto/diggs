@@ -18,7 +18,7 @@ class Deck {
 	}
 
 	reset() {
-		const DECK_SIZE = 84;
+		const DECK_SIZE = 108;
 		
 		this.cards = [];
 
@@ -57,7 +57,7 @@ class Deck {
 			this.dispense.push(this.table[i].serial);
 		}
 		this.table = [];
-		console.log('Disposed cards, new dispense deck: '+this.dispense)
+		console.log('Disposed cards, new dispense deck: '+this.dispense);
 	}
 
 	playCard(player, serial) {

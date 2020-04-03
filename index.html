@@ -78,7 +78,7 @@
 		}
 
 		.mdc-card__media--cardsize::before {
-			margin-top: 150%;
+			margin-top: 144%;
 		}
 
 		.mdc-card__media--cardsize {
@@ -87,17 +87,15 @@
 		}
 
 		.mdc-card__media--playcard {
-			background-image: url('/assets/cards.private.jpg');
-			background-size: 1400%;
+			background-image: url('/assets/sprites.comp.jpg');
+			background-size: 1200%;
 			background-position-x: left;
 			background-position-y: top;
 		}
-
-		@media(min-width: 1024px) {
-			.app-fab--absolute {
-				bottom: 1.5rem;
-				right: 1.5rem;
-			}
+		
+		.mdc-card__media-content {
+			display: flex;
+			align-items: flex-end;
 		}
 
 		.game-state { display: none; }
@@ -106,6 +104,29 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
+		}
+
+		.app-card-inner {
+			padding: 0 1em;
+			width: 100%;
+			color: white;
+			background-color: rgba(74,186,191,.5);
+		}
+
+		.app-card-inner .section-title {
+			border-color: white;
+		}
+
+		.mdc-data-table__content {
+			background-color: rgba(74,186,191,.4);
+		}
+
+		.mdc-data-table__row {
+			border-top-color: rgba(255,255,255,.4);
+		}
+
+		.mdc-data-table__cell {
+			color: white;
 		}
 	</style>
 </head>
@@ -121,7 +142,7 @@
 					</section>
 					<section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
 						<button id="playButton"
-							class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded game-state game-state-ns"
+							class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded game-state game-state-ns game-state-sr"
 							aria-label="Play next round">play_arrow</button>
 						<button id="editButton"
 							class="mdc-icon-button material-icons mdc-top-app-bar__action-item--unbounded"
@@ -137,7 +158,18 @@
 				<div class="mdc-chip-set " role="grid" id="playerChips">
 				</div>
 
-				<h2 class="section-title mdc-typography--headline6">Story</h2>
+				<h2 class="section-title mdc-typography--headline6 game-state game-state-sr">Scores</h2>
+				<div class="mdc-data-table game-state game-state-sr">
+					<table class="mdc-data-table__table" aria-label="Scores">
+					  <tbody class="mdc-data-table__content">
+						
+					  </tbody>
+					</table>
+				  </div>
+
+				<h2 class="section-title mdc-typography--headline6 game-state game-state-ns game-statr-st">Story</h2>
+				<h2 class="section-title mdc-typography--headline6 game-state game-state-vc">Pick the proper story card</h2>
+				<h2 class="section-title mdc-typography--headline6 game-state game-state-sr">Cards</h2>
 				<p class="mdc-typography--body game-state game-state-ns">The game has not yet started.</p>
 
 			</div>
@@ -166,7 +198,7 @@
 							</div>
 
 							<div class="game-state game-state-pc">
-								<div class="mdc-typography--body">Play a card for</div>
+								<div class="mdc-typography--subtitle2">Pick a card for the story</div>
 								<div class="mdc-typography--headline4" id="storyText">...</div>
 							</div>
 
@@ -176,7 +208,7 @@
 				</div>
 			</div>
 
-			<div class="mdc-layout-grid game-state game-state-vc">
+			<div class="mdc-layout-grid game-state game-state-vc game-state-sr">
 				<div class="mdc-layout-grid__inner" id="tablegrid">
 
 				</div>
@@ -296,7 +328,7 @@
 		}
 
 		function story(str) {
-			$("#storyText").html(str);
+			$("#storyText").html('"'+str+'"');
 		}
 
 		function displayPlayers(data) {
@@ -387,12 +419,42 @@
 			$('#tablegrid .play-card[data-card-id="'+data+'"] .mdc-card__media--cardsize').css('filter', 'none');
 		}
 
+		function results(data) {
+			console.log(data);
+			$("#tablegrid").empty();
+			for (var i = 0; i < data.cards.length; i++) {
+				var card = data.cards[i];
+				var offs = offsets(card.serial);
+				var $card = $('<div class="play-card mdc-layout-grid__cell mdc-layout-grid__cell--span-2 mdc-layout-grid__cell--span-2-desktop"><div class="mdc-card"><div class="mdc-card__primary-action"><div class="mdc-card__media mdc-card__media--cardsize mdc-card__media--playcard"><div class="mdc-card__media-content"></div></div></div></div></div>');
+				$card.find('.mdc-card__media--cardsize').css('background-position-x', offs.x);
+				$card.find('.mdc-card__media--cardsize').css('background-position-y', offs.y);
+				$card.attr('data-card-id', card.serial);
+				var contents = $('<div class="app-card-inner"><h2 class="section-title mdc-typography--headline6">'+card.owner+'</h2></div>');
+				if (card.storyCard) contents.append($('<div class="mdc-typography--subtitle2">Storyteller\'s card</div>'));
+				var votes = $('<p class="mdc-typography--body1">'+(card.votes.length ? '' : 'No votes')+'</p>');
+				for (var j = 0; j < card.votes.length; j++) {
+					votes.append($('<div class="mdc-typography--body1"> ✔ '+card.votes[j]+'</div>'));
+				}
+				contents.append(votes);
+				$card.find('.mdc-card__media-content').append(contents);
+
+				$("#tablegrid").append($card);
+			}
+
+			$('.mdc-data-table__content').empty();
+
+			for (var i = 0; i < data.scores.length; i++) {
+				var s = data.scores[i];
+				var row = $('<tr class="mdc-data-table__row"><td class="mdc-data-table__cell">'+s.name+'</td><td class="mdc-data-table__cell mdc-data-table__cell--numeric">'+s.score+'</td></tr>');
+				$('.mdc-data-table__content').append(row);
+			}
+		}
 
 
 		function offsets(serial) {
 			var idx = serial - 1;
-			var xoff = (idx % 14) * 7.69;
-			var yoff = Math.floor(idx / 14) * 20;
+			var xoff = (idx % 12) * 9.0909;
+			var yoff = Math.floor(idx / 12) * 12.5;
 			return {x: xoff + "%", y: yoff + "%"}
 		}
 
@@ -439,6 +501,7 @@
 			socket.on('state', function (data) { state(data) });
 			socket.on('story', function (data) { story(data) });
 			socket.on('table', function (data) { table(data) });
+			socket.on('results', function (data) { results(data) });
 			socket.on('disconnect', function () { });
 
 			$('#editButton').click(function () {

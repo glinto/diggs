@@ -10,6 +10,7 @@ class Game {
 		this.roundOrder = [];
 		this.acted = [];
 		this.scores = [];
+		this.results;
 	}
 
 	reset() {
@@ -47,6 +48,8 @@ class Game {
 
 		if (this.state == 'VC') player.socket.emit('table', this.getTable());
 
+		if (this.state == 'SR') player.socket.emit('results', this.results);
+
 		if (this.roundOrder.indexOf(clientId) == -1) { 
 			this.roundOrder.push(clientId);
 			console.log(this.roundOrder);
@@ -56,6 +59,11 @@ class Game {
 
 	next() {
 		if (this.state == 'NS') { 
+			//not starting game with less than 2 registered players
+			if (this.players.registeredCount < 2) return;			
+			this.setState('ST');
+		}
+		if (this.state == 'SR') { 
 			//not starting game with less than 2 registered players
 			if (this.players.registeredCount < 2) return;			
 			this.setState('ST');
@@ -155,8 +163,10 @@ class Game {
 		
 		var allMultiplier = 2;
 		var tempScores = [];
+		var cards = [];
 		for (i = 0; i < this.deck.table.length; i++) {
 			var card = this.deck.table[i];
+			
 			//storyteller card
 			if (card.owner == this.storySetter) {
 				//check all hits or no hits
@@ -182,14 +192,25 @@ class Game {
 				if (!tempScores[card.owner]) tempScores[card.owner] = {all: 1};
 				else tempScores[card.owner].all = 1;
 				tempScores[card.owner].hits = card.votes.length;
-
 			}
+			var player = this.players.find('clientId', card.owner);
+			var tempcard = {serial: card.serial, owner: player ? player.name : 'Unknown', storyCard: card.owner == this.storySetter, votes:[]};
+			for (j = 0; j < card.votes.length; j++) {
+				var voter = this.players.find('clientId', card.votes[j]);
+				tempcard.votes.push(voter ? voter.name :  'Unknown');
+			}
+			cards.push(tempcard);
 		}
-		console.log(tempScores);
+
+		var scoreTable = [];
 		for (var s in tempScores) {
-			this.addScore(s, tempScores[s], allMultiplier);
+			var st = this.addScore(s, tempScores[s], allMultiplier);
+			scoreTable.push({name: st.name, score: st.score}); 
 		}
-		console.log(this.scores);
+
+		this.results = {cards: cards, scores: scoreTable};
+		this.players.io.emit('results', this.results);
+		console.log(this.results);
 	}
 
 
@@ -199,6 +220,7 @@ class Game {
 		if (temp.fix) this.scores[clientId].score += temp.fix;
 		if (temp.hits) this.scores[clientId].score += temp.hits;
 		if (temp.all) this.scores[clientId].score += temp.all * allMultiplier;
+		return this.scores[clientId];
 	}
 
 	setState(str) {
